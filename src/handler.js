@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 const { nanoid } = require('nanoid');
-let books = require('./books');
+const books = require('./books');
 
 const addBook = (request, h) => {
   const {
@@ -78,14 +78,21 @@ const addBook = (request, h) => {
 const getAllBooks = (request, h) => {
   const { name, reading, finished } = request.query;
   let data = books;
+
   if (name) {
     data = data.filter((book) => book.name.toLowerCase().indexOf(name.toLowerCase()) >= 0);
   }
-  if (reading) {
-    data = data.filter((book) => book.reading === reading);
+  if (reading > 0) {
+    data = data.filter((book) => book.reading);
   }
-  if (finished) {
-    data = data.filter((book) => book.finished === finished);
+  if (reading <= 0) {
+    data = data.filter((book) => !book.reading);
+  }
+  if (finished > 0) {
+    data = data.filter((book) => book.finished);
+  }
+  if (finished <= 0) {
+    data = data.filter((book) => !book.finished);
   }
 
   data = data.map(({
@@ -118,13 +125,12 @@ const getBook = (request, h) => {
       },
     });
 
-    console.log(books[index]);
     response.code(200);
     return response;
   }
 
   const response = h.response({
-    status: 'error',
+    status: 'fail',
     message: 'Buku tidak ditemukan',
   });
 
@@ -147,6 +153,15 @@ const editBook = (request, h) => {
   } = request.payload;
 
   const index = books.findIndex((book) => book.id === bookId);
+
+  if (!name) {
+    const response = h.response({
+      status: 'fail',
+      message: 'Gagal memperbarui buku. Mohon isi nama buku',
+    });
+    response.code(400);
+    return response;
+  }
 
   if (readPage > pageCount) {
     const response = h.response({
@@ -212,23 +227,10 @@ const deleteBook = (request, h) => {
   return response;
 };
 
-const deleteAllBooks = (request, h) => {
-  books = [];
-
-  const response = h.response({
-    status: 'success',
-    message: 'Buku berhasil dihapus semua',
-  });
-  response.code(200);
-
-  return response;
-};
-
 module.exports = {
   addBook,
   getAllBooks,
   editBook,
   deleteBook,
   getBook,
-  deleteAllBooks,
 };

@@ -1,4 +1,4 @@
 /* eslint-disable prefer-const */
-let books = [];
+const books = [];
 
 module.exports = books;
